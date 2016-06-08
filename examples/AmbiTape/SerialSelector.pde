@@ -124,4 +124,3 @@ public class SerialSelector {
     popStyle();
   }
 }
-

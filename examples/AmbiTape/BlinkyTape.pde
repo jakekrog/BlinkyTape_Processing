@@ -173,4 +173,3 @@ class BlinkyTape
     m_dataIndex = 0;
   }
 }
-

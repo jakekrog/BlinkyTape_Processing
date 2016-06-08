@@ -237,7 +237,7 @@ void setup() {
   }
 
   // Preview window shows all screens side-by-side
-  size(totalWidth * pixelSize, maxHeight * pixelSize);
+  surface.setSize(totalWidth * pixelSize, maxHeight * pixelSize);
   noSmooth();
 
   // Pre-compute gamma correction table for LED brightness levels:
@@ -386,7 +386,7 @@ void draw () {
 
 public class DisposeHandler {
   DisposeHandler(PApplet pa) {
-    pa.registerDispose(this);
+    pa.registerMethod("dispose", this);
   }
   public void dispose() {
     if(bt != null) {
@@ -395,7 +395,7 @@ public class DisposeHandler {
         bt.pushPixel(color(0));
       }
       bt.update();
-    } 
+      delay(1);
+    }
   }
 }
-
