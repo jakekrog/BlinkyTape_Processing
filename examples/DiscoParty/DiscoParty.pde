@@ -15,9 +15,10 @@ float Sensitivity = 10;  // amplification value
 float Smoothing = 1;     // how fast things die off
 float colorSpeed = .05;  // How much the colors flicker
 
-
+String[] cliOptions = {"--colorspeed", "--devices", "-h", "--help", "--sensitivity", "--smoothing", "--spacing"};
 ArrayList<BlinkyTape> bts = new ArrayList<BlinkyTape>();
 
+int btSpacing = 15;
 float colorAngle = 0;
 int numberOfLEDs = 60;
 
@@ -31,8 +32,67 @@ DiscoPartyParticle logo;
 
 SerialSelector s;
 
+boolean validOption(String option) {
+  for (int i = 0; i < cliOptions.length; i++) {
+     if (option.equals(cliOptions[i])) {
+       return true; 
+     }
+  }
+  return false;
+}
+
+boolean isHelp(String option) {
+  return option.equals("-h") || option.equals("--help");
+}
+
+void printHelp() {
+  println("-h, --help:            show this help info");
+  println("--colorspeed value:    set colorspeed to specified float value");
+  println("--devices device_list: output to specified devices");
+  println("--sensitivity value:   set sensitivity to specified float value");
+  println("--smoothing value:     set smoothing to specified float value");
+  println("--spacing value:       set BlinkyTape spacing to specified int value");
+}
+
+void processArguments() {
+  if (args == null || args.length == 0) {
+    // No args to process
+    return;
+  }
+  
+  String currentOption = null;
+  for (int i = 0; i < args.length; i++) {
+    if (validOption(args[i])) {
+      currentOption = args[i];
+      if (i == 0 && isHelp(currentOption)) {
+        printHelp();
+        exit();
+      }
+      continue;
+    }
+    
+    if (currentOption == null) {
+      continue; 
+    }
+    
+    if (currentOption.equals("--colorspeed")) {
+      colorSpeed = Float.parseFloat(args[i]);
+    } else if (currentOption.equals("--devices")) {
+      bts.add(new BlinkyTape(this, args[i], numberOfLEDs)); 
+    } else if (currentOption.equals("--sensitivity")) {
+      Sensitivity = Float.parseFloat(args[i]);
+    } else if (currentOption.equals("--smoothing")) {
+      Smoothing = Float.parseFloat(args[i]);
+    } else if (currentOption.equals("--spacing")) {
+      btSpacing = Integer.parseInt(args[i]);
+    } 
+  }
+}
+
 void setup()
 {
+  processArguments();
+  
   frameRate(30);
   size(400, 250, P2D);
   
@@ -91,7 +151,7 @@ void setup()
     .setPosition(40,230)
     .setSize(100,15)
     .setRange(1, 100)
-    .setValue(10)
+    .setValue(Sensitivity)
     .setId(1);  
   slider.getValueLabel()
       .align(ControlP5.RIGHT,ControlP5.CENTER);
@@ -102,7 +162,7 @@ void setup()
     .setPosition(150,230)
     .setSize(100,15)
     .setRange(1, 20)
-    .setValue(1)
+    .setValue(Smoothing)
     .setId(1);  
   slider.getValueLabel()
       .align(ControlP5.RIGHT,ControlP5.CENTER);
@@ -113,15 +173,18 @@ void setup()
     .setPosition(260,230)
     .setSize(100,15)
     .setRange(.001, .1)
-    .setValue(.05)
+    .setValue(colorSpeed)
     .setId(1);  
   slider.getValueLabel()
       .align(ControlP5.RIGHT,ControlP5.CENTER);
   slider.getCaptionLabel()
       .align(ControlP5.LEFT,ControlP5.CENTER);
       
-
-  s = new SerialSelector();
+  // Don't show SerialSelector if bts was initialized from command line
+  if (bts.size() == 0) {
+    s = new SerialSelector();  
+  }
+  
   logo = new DiscoPartyParticle();
   
   burst = new Burst();
@@ -139,7 +202,7 @@ void draw()
   // Cover the logo up under where the BlinkyTapes are drawn,
   // so they don't pick up the white flashes.
   for(int i = 0; i < bts.size(); i++) {
-    float pos = 15 + 15*i;
+    float pos = 15 + btSpacing*i;
     
     stroke(0);
     line(pos, 0, pos, height);
@@ -154,7 +217,7 @@ void draw()
   }
   
   for(int i = 0; i < bts.size(); i++) {
-    float pos = 15 + 15*i;
+    float pos = 15 + btSpacing*i;
     bts.get(i).render(pos, 0, pos, height);
     bts.get(i).update();
     
