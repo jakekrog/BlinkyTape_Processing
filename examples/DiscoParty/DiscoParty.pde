@@ -15,9 +15,10 @@ float Sensitivity = 10;  // amplification value
 float Smoothing = 1;     // how fast things die off
 float colorSpeed = .05;  // How much the colors flicker
 
-String[] cliOptions = {"--colorspeed", "--devices", "-h", "--help", "--sensitivity", "--smoothing", "--spacing"};
+String[] cliOptions = {"--colorspeed", "--devices", "--disable-logo", "-h", "--help", "--sensitivity", "--smoothing", "--spacing"};
 ArrayList<BlinkyTape> bts = new ArrayList<BlinkyTape>();
 
+boolean showLogo = true;
 int btSpacing = 15;
 float colorAngle = 0;
 int numberOfLEDs = 60;
@@ -46,12 +47,13 @@ boolean isHelp(String option) {
 }
 
 void printHelp() {
-  println("-h, --help:            show this help info");
-  println("--colorspeed value:    set colorspeed to specified float value");
-  println("--devices device_list: output to specified devices");
-  println("--sensitivity value:   set sensitivity to specified float value");
-  println("--smoothing value:     set smoothing to specified float value");
-  println("--spacing value:       set BlinkyTape spacing to specified int value");
+  println("-h, --help            show this help info");
+  println("--colorspeed value    set colorspeed to specified float value");
+  println("--devices device_list output to specified devices");
+  println("--disable-logo        disable the DiscoParty logo");
+  println("--sensitivity value   set sensitivity to specified float value");
+  println("--smoothing value     set smoothing to specified float value");
+  println("--spacing value       set BlinkyTape spacing to specified int value");
 }
 
 void processArguments() {
@@ -64,6 +66,10 @@ void processArguments() {
   for (int i = 0; i < args.length; i++) {
     if (validOption(args[i])) {
       currentOption = args[i];
+      // Handle options without arguments
+      if (currentOption.equals("--disable-logo")) {
+        showLogo = false; 
+      }
       continue;
     }
     
@@ -71,6 +77,7 @@ void processArguments() {
       continue; 
     }
     
+    // Handle options with arguments
     if (currentOption.equals("--colorspeed")) {
       colorSpeed = Float.parseFloat(args[i]);
     } else if (currentOption.equals("--devices")) {
@@ -187,7 +194,9 @@ void setup()
     s = new SerialSelector();  
   }
   
-  logo = new DiscoPartyParticle();
+  if (showLogo) {
+    logo = new DiscoPartyParticle(); 
+  }
   
   burst = new Burst();
 }
@@ -198,16 +207,18 @@ void draw()
   leftFft.forward(audioin.mix);
   
   background(0);
-  
-  logo.draw();
 
-  // Cover the logo up under where the BlinkyTapes are drawn,
-  // so they don't pick up the white flashes.
-  for(int i = 0; i < bts.size(); i++) {
-    float pos = 15 + btSpacing*i;
-    
-    stroke(0);
-    line(pos, 0, pos, height);
+  if (logo != null) {
+    logo.draw();
+
+    // Cover the logo up under where the BlinkyTapes are drawn,
+    // so they don't pick up the white flashes.
+    for(int i = 0; i < bts.size(); i++) {
+      float pos = 15 + btSpacing*i;
+      
+      stroke(0);
+      line(pos, 0, pos, height);
+    } 
   }
 
   for(Pulser p : leftPulsers) {
