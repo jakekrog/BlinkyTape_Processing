@@ -64,10 +64,6 @@ void processArguments() {
   for (int i = 0; i < args.length; i++) {
     if (validOption(args[i])) {
       currentOption = args[i];
-      if (i == 0 && isHelp(currentOption)) {
-        printHelp();
-        exit();
-      }
       continue;
     }
     
@@ -91,6 +87,12 @@ void processArguments() {
 
 void setup()
 {
+  if (args.length == 1 && isHelp(args[0])) {
+    printHelp();
+    exit();
+    return;
+  }
+  
   processArguments();
   
   frameRate(30);
